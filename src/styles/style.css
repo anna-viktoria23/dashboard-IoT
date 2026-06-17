@@ -1,4 +1,4 @@
-/* style.css — Dashboard IoT | SENAI Ítalo Bologna — Aula 10 */
+/* style.css — Dashboard IoT | SENAI Ítalo Bologna */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -10,6 +10,7 @@
     --green:    #00ff88;
     --red:      #ff4444;
     --orange:   #ffaa00;
+    --yellow:   #ffd93d;
     --text:     #e6edf3;
     --muted:    #8b949e;
     --mono:     'Courier New', monospace;
@@ -22,7 +23,7 @@ body {
     min-height: 100vh;
 }
 
-/* ── HEADER ──────────────────────────────────────────────────────────────── */
+/* ── HEADER ── */
 header {
     text-align: center;
     padding: 2.5rem 2rem 2rem;
@@ -54,9 +55,9 @@ header::before {
 header h1 { font-size: 1.8rem; font-weight: 300; margin-bottom: 0.3rem; }
 header p  { color: var(--muted); font-size: 0.9rem; }
 
-/* ── MAIN ────────────────────────────────────────────────────────────────── */
+/* ── MAIN ── */
 main {
-    max-width: 900px;
+    max-width: 960px;
     margin: 2rem auto;
     padding: 0 1.5rem 4rem;
     display: flex;
@@ -64,7 +65,7 @@ main {
     gap: 2rem;
 }
 
-/* ── STATUS BAR ──────────────────────────────────────────────────────────── */
+/* ── STATUS BAR ── */
 .status-bar {
     display: flex;
     align-items: center;
@@ -85,7 +86,7 @@ main {
     transition: background 0.3s;
 }
 
-.status-dot.conectado { background: var(--green); }
+.status-dot.conectado { background: var(--green); box-shadow: 0 0 6px var(--green); }
 
 #ultima-atualizacao {
     margin-left: auto;
@@ -94,11 +95,16 @@ main {
     font-family: var(--mono);
 }
 
-/* ── CARDS ───────────────────────────────────────────────────────────────── */
+/* ── CARDS GRID ── */
 .cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.2rem;
+}
+
+/* Card de câmera ocupa as duas colunas */
+.card-camera {
+    grid-column: 1 / -1;
 }
 
 .card {
@@ -119,62 +125,147 @@ main {
     height: 2px;
 }
 
-.card-temp::before { background: #ff6b6b; }
-.card-umid::before { background: #4ecdc4; }
-.card-ldr::before  { background: #ffd93d; }
+.card-presenca::before { background: #a78bfa; }
+.card-ldr::before      { background: var(--yellow); }
+.card-camera::before   { background: var(--accent); }
 
 .card-icone  { font-size: 2rem; margin-bottom: 0.5rem; }
 .card-label  { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.8rem; }
 .card-valor  { font-size: 3rem; font-weight: 700; font-family: var(--mono); color: var(--text); line-height: 1; }
 .card-unidade{ font-size: 0.9rem; color: var(--muted); margin-top: 0.3rem; }
 
-/* Alerta visual quando valor crítico */
+/* Alerta visual — presença detectada */
+.card-presenca.presenca-ativa {
+    border-color: #a78bfa;
+    box-shadow: 0 0 18px rgba(167, 139, 250, 0.25);
+}
+.card-presenca.presenca-ativa .card-valor { color: #a78bfa; }
+
+/* Alerta luminosidade */
 .card.alerta { border-color: var(--red); }
 .card.alerta .card-valor { color: var(--red); }
 
-/* ── CONTROLE ────────────────────────────────────────────────────────────── */
-.controle {
+/* ── CÂMERA ── */
+.card-camera {
+    padding: 1.4rem;
+    text-align: left;
+}
+
+.card-camera .card-label {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.card-camera .card-icone {
+    display: inline;
+    margin-right: 0.4rem;
+    font-size: 1.1rem;
+}
+
+.camera-wrapper {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0a0e14;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+#camera-feed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.camera-offline {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--muted);
+}
+
+.camera-offline span { font-size: 2.5rem; opacity: 0.4; }
+.camera-offline p    { font-size: 0.9rem; }
+.camera-offline small{ font-size: 0.75rem; font-family: var(--mono); opacity: 0.7; }
+
+/* ── STATUS DO LED ── */
+.led-status {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 1.5rem;
 }
 
-.controle h2 {
+.led-status-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+}
+
+.led-status-titulo {
     font-size: 0.85rem;
     color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin-bottom: 1rem;
 }
 
-.botoes-led {
+.led-badge {
+    font-size: 0.72rem;
+    font-family: var(--mono);
+    font-weight: 700;
+    padding: 0.25rem 0.8rem;
+    border-radius: 999px;
+    letter-spacing: 0.1em;
+    background: rgba(255, 68, 68, 0.12);
+    border: 1px solid var(--red);
+    color: var(--red);
+    transition: all 0.3s;
+}
+
+.led-badge.ligado {
+    background: rgba(255, 217, 61, 0.12);
+    border-color: var(--yellow);
+    color: var(--yellow);
+}
+
+.led-visual {
     display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem;
 }
 
-button {
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    padding: 0.6rem 1.4rem;
-    border-radius: 8px;
-    cursor: pointer;
+.led-bulb {
+    font-size: 3rem;
+    opacity: 0.25;
+    transition: opacity 0.4s, filter 0.4s;
+    flex-shrink: 0;
+}
+
+.led-bulb.ligado {
+    opacity: 1;
+    filter: drop-shadow(0 0 12px #ffd93d);
+}
+
+.led-info p {
     font-size: 0.9rem;
-    transition: all 0.2s;
-    font-family: inherit;
+    color: var(--text);
+    margin-bottom: 0.3rem;
 }
 
-button:hover:not(:disabled) {
-    background: var(--accent);
-    color: #000;
-    font-weight: 600;
+.led-hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-family: var(--mono);
 }
 
-button:disabled { opacity: 0.3; cursor: not-allowed; }
-
-/* ── LOG ─────────────────────────────────────────────────────────────────── */
+/* ── LOG ── */
 .log-section {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -204,7 +295,9 @@ button:disabled { opacity: 0.3; cursor: not-allowed; }
     color: var(--muted);
 }
 
-/* ── RESPONSIVO ──────────────────────────────────────────────────────────── */
+/* ── RESPONSIVO ── */
 @media (max-width: 600px) {
     .cards { grid-template-columns: 1fr; }
+    .card-camera { grid-column: auto; }
+    .led-visual { flex-direction: column; text-align: center; }
 }

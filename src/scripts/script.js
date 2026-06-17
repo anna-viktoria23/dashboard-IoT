@@ -1,36 +1,64 @@
-// script.js — Dashboard IoT | SENAI Ítalo Bologna — Aula 10
+// script.js — Dashboard IoT | SENAI Ítalo Bologna
 //
-// Este arquivo faz duas coisas:
-//   1. SUBSCRIBER: recebe dados dos sensores (DHT22 + LDR) do Pico
-//   2. PUBLISHER: envia comandos (led:on / led:off) para o Pico
+// SUBSCRIBER: recebe dados do sensor de presença + LDR do Pico
+// O LED é acionado automaticamente pelo Pico ao detectar presença.
+// O dashboard apenas reflete o estado recebido via MQTT.
 //
-// Comunicação via MQTT.js usando WebSocket (ws://)
-// O browser não consegue TCP puro — por isso usa WebSocket na porta 8000
+// Formato esperado das mensagens:
+//   "presenca:1,ldr:72.3,led:on"
+//   "presenca:0,ldr:45.1,led:off"
+//
+// Câmera: stream MJPEG via URL HTTP (ex: http://192.168.1.XX:8080/video)
 
-// ─── CONFIGURAÇÃO ────────────────────────────────────────────────────────────
-// Muda só aqui para trocar de broker (local → professor → online)
+// ─── CONFIGURAÇÃO ─────────────────────────────────────────────────────────────
 const CONFIG = {
-    broker:    "ws://192.168.1.XXX:8000",  // ← IP do notebook broker + porta WebSocket
-    topicSub:  "senai/grupo1/sensores",     // ← mesmo tópico que o Pico publica
-    topicPub:  "senai/grupo1/comandos",     // ← tópico que o Pico assina
-    clientId:  "dashboard_" + Math.random().toString(16).slice(2, 8)
-    // clientId aleatório evita conflito se dois browsers abrirem ao mesmo tempo
+    broker:     "ws://192.168.1.XXX:8000",  // ← IP do broker + porta WebSocket
+    topicSub:   "senai/grupo1/sensores",     // ← tópico que o Pico publica
+    clientId:   "dashboard_" + Math.random().toString(16).slice(2, 8),
+    cameraUrl:  "http://192.168.1.XXX:8080/video"  // ← URL do stream MJPEG da câmera
 }
 
-// ─── VARIÁVEIS DE ESTADO ─────────────────────────────────────────────────────
+// ─── VARIÁVEIS DE ESTADO ──────────────────────────────────────────────────────
 let cliente = null
 
 // ─── ELEMENTOS DO DOM ────────────────────────────────────────────────────────
-const statusDot    = document.getElementById("status-dot")
-const statusTexto  = document.getElementById("status-texto")
-const ultimaAtu    = document.getElementById("ultima-atualizacao")
-const btnOn        = document.getElementById("btn-on")
-const btnOff       = document.getElementById("btn-off")
-const logEl        = document.getElementById("log")
+const statusDot      = document.getElementById("status-dot")
+const statusTexto    = document.getElementById("status-texto")
+const ultimaAtu      = document.getElementById("ultima-atualizacao")
+const logEl          = document.getElementById("log")
+
+const cardPresenca   = document.querySelector(".card-presenca")
+const elPresenca     = document.getElementById("presenca")
+const elPresencaSts  = document.getElementById("presenca-status")
+
+const elLuminosidade = document.getElementById("luminosidade")
+
+const ledBulb        = document.getElementById("led-bulb")
+const ledBadge       = document.getElementById("led-badge")
+const ledDescricao   = document.getElementById("led-descricao")
+
+const cameraFeed     = document.getElementById("camera-feed")
+const cameraOffline  = document.getElementById("camera-offline")
+
+// ─── CÂMERA ──────────────────────────────────────────────────────────────────
+// Tenta conectar ao stream MJPEG assim que a página carrega.
+// Se a câmera não estiver disponível, o placeholder de "sem sinal" é exibido.
+function iniciarCamera() {
+    if (!CONFIG.cameraUrl || CONFIG.cameraUrl.includes("XXX")) return
+
+    cameraFeed.src = CONFIG.cameraUrl
+    cameraFeed.style.display = "block"
+    cameraOffline.style.display = "none"
+
+    cameraFeed.onerror = () => {
+        cameraFeed.style.display = "none"
+        cameraOffline.style.display = "flex"
+        log("Câmera inacessível — verifique a URL do stream.", "erro")
+    }
+}
 
 // ─── FUNÇÕES AUXILIARES ──────────────────────────────────────────────────────
 
-// Adiciona linha no log com hora e cor por tipo
 function log(mensagem, tipo = "info") {
     const cores = {
         info:     "#8b949e",
@@ -44,109 +72,107 @@ function log(mensagem, tipo = "info") {
     logEl.scrollTop = logEl.scrollHeight
 }
 
-// Atualiza o indicador de status na barra superior
 function setStatus(conectado, texto) {
     statusDot.className   = "status-dot" + (conectado ? " conectado" : "")
     statusTexto.textContent = texto
-    btnOn.disabled  = !conectado
-    btnOff.disabled = !conectado
 }
 
-// Atualiza a hora da última leitura recebida
 function marcarAtualizacao() {
     ultimaAtu.textContent = "Última leitura: " + new Date().toLocaleTimeString("pt-BR")
 }
 
-// ─── PROCESSAR MENSAGEM RECEBIDA ─────────────────────────────────────────────
-// Exemplo de mensagem: "temp:24.5,umid:58.0,ldr:72.3"
+// ─── ATUALIZAR LED ───────────────────────────────────────────────────────────
+function atualizarLed(ligado) {
+    if (ligado) {
+        ledBulb.classList.add("ligado")
+        ledBadge.classList.add("ligado")
+        ledBadge.textContent = "LIGADO"
+        ledDescricao.textContent = "LED aceso — presença detectada no ambiente."
+    } else {
+        ledBulb.classList.remove("ligado")
+        ledBadge.classList.remove("ligado")
+        ledBadge.textContent = "DESLIGADO"
+        ledDescricao.textContent = "LED apagado — nenhuma presença detectada."
+    }
+}
+
+// ─── ATUALIZAR PRESENÇA ──────────────────────────────────────────────────────
+function atualizarPresenca(detectada) {
+    if (detectada) {
+        elPresenca.textContent = "SIM"
+        elPresencaSts.textContent = "Movimento detectado"
+        cardPresenca.classList.add("presenca-ativa")
+    } else {
+        elPresenca.textContent = "NÃO"
+        elPresencaSts.textContent = "Ambiente livre"
+        cardPresenca.classList.remove("presenca-ativa")
+    }
+}
+
+// ─── PROCESSAR MENSAGEM MQTT ─────────────────────────────────────────────────
+// Formato esperado: "presenca:1,ldr:72.3,led:on"
 function processarMensagem(mensagem) {
     log(`[REC] ${mensagem}`, "recebido")
 
-    // Separa cada par chave:valor
     const partes = mensagem.split(",")
 
     partes.forEach(parte => {
         const [chave, valor] = parte.split(":")
 
-        if (chave === "temp") {
-            document.getElementById("temperatura").textContent = valor
-
-            // Alerta visual se temperatura acima de 30°C
-            const cardTemp = document.querySelector(".card-temp")
-            cardTemp.classList.toggle("alerta", parseFloat(valor) > 30)
-        }
-
-        if (chave === "umid") {
-            document.getElementById("umidade").textContent = valor
+        if (chave === "presenca") {
+            atualizarPresenca(valor === "1" || valor === "true")
         }
 
         if (chave === "ldr") {
-            document.getElementById("luminosidade").textContent = valor
+            elLuminosidade.textContent = valor
+            const cardLdr = document.querySelector(".card-ldr")
+            // Alerta se luminosidade abaixo de 10% (muito escuro)
+            cardLdr.classList.toggle("alerta", parseFloat(valor) < 10)
+        }
+
+        if (chave === "led") {
+            atualizarLed(valor === "on" || valor === "1")
         }
     })
 
     marcarAtualizacao()
 }
 
-// ─── CONEXÃO MQTT ────────────────────────────────────────────────────────────
+// ─── CONEXÃO MQTT ─────────────────────────────────────────────────────────────
 function conectar() {
     log(`Conectando ao broker: ${CONFIG.broker}...`)
     setStatus(false, "Conectando...")
 
-    // mqtt.connect() — ponto de entrada da biblioteca MQTT.js
-    // "ws://" indica WebSocket sem criptografia
     cliente = mqtt.connect(CONFIG.broker, {
         clientId: CONFIG.clientId,
         clean: true,
         connectTimeout: 10000
     })
 
-    // ── Evento: conexão estabelecida ──────────────────────────────────────────
     cliente.on("connect", () => {
         setStatus(true, "Conectado ao broker")
         log("Conectado com sucesso!", "sucesso")
 
-        // Assina o tópico onde o Pico publica os dados dos sensores
         cliente.subscribe(CONFIG.topicSub, (err) => {
-            if (!err) {
-                log(`[SUB] Assinando: ${CONFIG.topicSub}`, "info")
-            }
+            if (!err) log(`[SUB] Assinando: ${CONFIG.topicSub}`, "info")
         })
     })
 
-    // ── Evento: mensagem recebida ─────────────────────────────────────────────
-    // Chamado sempre que o broker entrega uma mensagem no tópico assinado
     cliente.on("message", (topico, payload) => {
-        // payload chega como bytes — toString() converte para texto
-        // Mesmo conceito do .decode() do MicroPython
-        const mensagem = payload.toString()
-        processarMensagem(mensagem)
+        processarMensagem(payload.toString())
     })
 
-    // ── Evento: erro de conexão ───────────────────────────────────────────────
     cliente.on("error", (err) => {
         log(`[ERRO] ${err.message}`, "erro")
         setStatus(false, "Erro de conexão")
     })
 
-    // ── Evento: desconexão ────────────────────────────────────────────────────
     cliente.on("close", () => {
         setStatus(false, "Desconectado")
         log("Conexão encerrada.", "erro")
     })
 }
 
-// ─── PUBLICAR COMANDO PARA O PICO ────────────────────────────────────────────
-// Chamado pelos botões "Ligar LED" e "Desligar LED" no HTML
-function publicarComando(comando) {
-    if (!cliente || !cliente.connected) return
-
-    // publish(tópico, mensagem)
-    // O Pico está assinando CONFIG.topicPub e vai receber este comando
-    cliente.publish(CONFIG.topicPub, comando)
-    log(`[PUB] Comando enviado: "${comando}"`, "enviado")
-}
-
 // ─── INICIALIZAÇÃO ────────────────────────────────────────────────────────────
-// Conecta automaticamente ao abrir o dashboard
+iniciarCamera()
 conectar()
