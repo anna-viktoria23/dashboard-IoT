@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard IoT | SENAI</title>
+    <link rel="stylesheet" href="src/styles/style.css">
+    <!-- MQTT.js via CDN — não precisa instalar nada -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="badge">SENAI Ítalo Bologna</div>
+        <h1>Dashboard IoT</h1>
+        <p>Monitoramento em tempo real — Raspberry Pi Pico 2W</p>
+    </header>
+
+    <main>
+
+        <!-- STATUS DA CONEXÃO -->
+        <section class="status-bar">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-texto">Desconectado</span>
+            <span id="ultima-atualizacao"></span>
+        </section>
+
+        <!-- CARDS DOS SENSORES -->
+        <section class="cards">
+
+            <div class="card card-temp">
+                <div class="card-icone">🌡️</div>
+                <div class="card-label">Temperatura</div>
+                <div class="card-valor" id="temperatura">--</div>
+                <div class="card-unidade">°C</div>
+            </div>
+
+            <div class="card card-umid">
+                <div class="card-icone">💧</div>
+                <div class="card-label">Umidade</div>
+                <div class="card-valor" id="umidade">--</div>
+                <div class="card-unidade">%</div>
+            </div>
+
+            <div class="card card-ldr">
+                <div class="card-icone">☀️</div>
+                <div class="card-label">Luminosidade</div>
+                <div class="card-valor" id="luminosidade">--</div>
+                <div class="card-unidade">%</div>
+            </div>
+
+        </section>
+
+        <!-- CONTROLE DO LED -->
+        <section class="controle">
+            <h2>Controle Remoto</h2>
+            <div class="botoes-led">
+                <button id="btn-on" onclick="publicarComando('led:on')" disabled>
+                    💡 Ligar LED
+                </button>
+                <button id="btn-off" onclick="publicarComando('led:off')" disabled>
+                    🌑 Desligar LED
+                </button>
+            </div>
+        </section>
+
+        <!-- LOG DE MENSAGENS -->
+        <section class="log-section">
+            <h2>Log de Mensagens</h2>
+            <pre id="log">Aguardando conexão...\n</pre>
+        </section>
+
+    </main>
+
+    <script src="src/scripts/script.js"></script>
+</body>
+</html>

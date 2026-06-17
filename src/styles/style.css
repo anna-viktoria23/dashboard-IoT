@@ -1,0 +1,210 @@
+/* style.css — Dashboard IoT | SENAI Ítalo Bologna — Aula 10 */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --border:   #30363d;
+    --accent:   #00d4ff;
+    --green:    #00ff88;
+    --red:      #ff4444;
+    --orange:   #ffaa00;
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+    --mono:     'Courier New', monospace;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+}
+
+/* ── HEADER ──────────────────────────────────────────────────────────────── */
+header {
+    text-align: center;
+    padding: 2.5rem 2rem 2rem;
+    background: linear-gradient(180deg, #0a1628 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+.badge {
+    display: inline-block;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 0.7rem;
+    padding: 0.2rem 0.9rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.8rem;
+}
+
+header h1 { font-size: 1.8rem; font-weight: 300; margin-bottom: 0.3rem; }
+header p  { color: var(--muted); font-size: 0.9rem; }
+
+/* ── MAIN ────────────────────────────────────────────────────────────────── */
+main {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* ── STATUS BAR ──────────────────────────────────────────────────────────── */
+.status-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.85rem;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+    transition: background 0.3s;
+}
+
+.status-dot.conectado { background: var(--green); }
+
+#ultima-atualizacao {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-family: var(--mono);
+}
+
+/* ── CARDS ───────────────────────────────────────────────────────────────── */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.8rem 1.2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+}
+
+.card-temp::before { background: #ff6b6b; }
+.card-umid::before { background: #4ecdc4; }
+.card-ldr::before  { background: #ffd93d; }
+
+.card-icone  { font-size: 2rem; margin-bottom: 0.5rem; }
+.card-label  { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.8rem; }
+.card-valor  { font-size: 3rem; font-weight: 700; font-family: var(--mono); color: var(--text); line-height: 1; }
+.card-unidade{ font-size: 0.9rem; color: var(--muted); margin-top: 0.3rem; }
+
+/* Alerta visual quando valor crítico */
+.card.alerta { border-color: var(--red); }
+.card.alerta .card-valor { color: var(--red); }
+
+/* ── CONTROLE ────────────────────────────────────────────────────────────── */
+.controle {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+}
+
+.controle h2 {
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+}
+
+.botoes-led {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+button {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+button:hover:not(:disabled) {
+    background: var(--accent);
+    color: #000;
+    font-weight: 600;
+}
+
+button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── LOG ─────────────────────────────────────────────────────────────────── */
+.log-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+}
+
+.log-section h2 {
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+}
+
+#log {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.7;
+    max-height: 250px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    color: var(--muted);
+}
+
+/* ── RESPONSIVO ──────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .cards { grid-template-columns: 1fr; }
+}
