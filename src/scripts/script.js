@@ -33,6 +33,11 @@ const elPresencaSts  = document.getElementById("presenca-status")
 
 const elLuminosidade = document.getElementById("luminosidade")
 
+// Card resumo do LED (no topo, junto dos outros cards de sensores)
+const cardLed        = document.querySelector(".card-led")
+const elLedValor     = document.getElementById("led-card-valor")
+const elLedStatus    = document.getElementById("led-card-status")
+
 const ledBulb        = document.getElementById("led-bulb")
 const ledBadge       = document.getElementById("led-badge")
 const ledDescricao   = document.getElementById("led-descricao")
@@ -68,7 +73,7 @@ function log(mensagem, tipo = "info") {
         enviado:  "#00d4ff"
     }
     const hora = new Date().toLocaleTimeString("pt-BR")
-    logEl.innerHTML += `<span style="color:${cores[tipo]}">[${hora}] ${mensagem}</span>\n`
+    logEl.innerHTML += <span style="color:${cores[tipo]}">[${hora}] ${mensagem}</span>\n
     logEl.scrollTop = logEl.scrollHeight
 }
 
@@ -88,11 +93,21 @@ function atualizarLed(ligado) {
         ledBadge.classList.add("ligado")
         ledBadge.textContent = "LIGADO"
         ledDescricao.textContent = "LED aceso — presença detectada no ambiente."
+
+        // Card resumo no topo
+        elLedValor.textContent = "LIGADO"
+        elLedStatus.textContent = "LED aceso"
+        cardLed.classList.add("led-ativo")
     } else {
         ledBulb.classList.remove("ligado")
         ledBadge.classList.remove("ligado")
         ledBadge.textContent = "DESLIGADO"
         ledDescricao.textContent = "LED apagado — nenhuma presença detectada."
+
+        // Card resumo no topo
+        elLedValor.textContent = "DESLIGADO"
+        elLedStatus.textContent = "LED apagado"
+        cardLed.classList.remove("led-ativo")
     }
 }
 
@@ -112,7 +127,7 @@ function atualizarPresenca(detectada) {
 // ─── PROCESSAR MENSAGEM MQTT ─────────────────────────────────────────────────
 // Formato esperado: "presenca:1,ldr:72.3,led:on"
 function processarMensagem(mensagem) {
-    log(`[REC] ${mensagem}`, "recebido")
+    log([REC] ${mensagem}, "recebido")
 
     const partes = mensagem.split(",")
 
@@ -140,7 +155,7 @@ function processarMensagem(mensagem) {
 
 // ─── CONEXÃO MQTT ─────────────────────────────────────────────────────────────
 function conectar() {
-    log(`Conectando ao broker: ${CONFIG.broker}...`)
+    log(Conectando ao broker: ${CONFIG.broker}...)
     setStatus(false, "Conectando...")
 
     cliente = mqtt.connect(CONFIG.broker, {
@@ -154,7 +169,7 @@ function conectar() {
         log("Conectado com sucesso!", "sucesso")
 
         cliente.subscribe(CONFIG.topicSub, (err) => {
-            if (!err) log(`[SUB] Assinando: ${CONFIG.topicSub}`, "info")
+            if (!err) log([SUB] Assinando: ${CONFIG.topicSub}, "info")
         })
     })
 
@@ -163,7 +178,7 @@ function conectar() {
     })
 
     cliente.on("error", (err) => {
-        log(`[ERRO] ${err.message}`, "erro")
+        log([ERRO] ${err.message}, "erro")
         setStatus(false, "Erro de conexão")
     })
 
